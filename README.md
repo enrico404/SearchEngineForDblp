@@ -15,4 +15,4 @@ pub-search : pub-ele[.pub-field] \
 pub-ele: publication | article | incollection | inproc | phThesis | masterThesis \
 pub-field: author | title | year \
 venue-search: venue[.venue-field] \
-venue-field: title | publisher \
+venue-field: title | publisher 
