@@ -1,118 +1,170 @@
-
 import xml.sax
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID,DATETIME,NUMERIC
 from whoosh.query import *
 from whoosh.qparser import QueryParser
 from whoosh.analysis import *
-import sys
+from utils import DataHandler as DH
+from utils import QueryManager as QM
 import os
 
 
-class DataHandler(xml.sax.handler.ContentHandler):
-    def __init__(self):
-        #dati documento corrente
-        self.tags = {}
-        self.initDict()
-        #tag corrente
-        self.CurrentTag = ""
-
-    def startElement(self, name, attr):
-        self.CurrentTag = name
-        if not self.tags.get(name) and name != "dblp":
-            self.tags[name] = ""
-
-    def characters(self, content):
-        content = content.strip()
-        if content != "":
-            if self.CurrentTag != "" and self.CurrentTag != "dblp":
-                if self.tags[self.CurrentTag] != "":
-                        self.tags[self.CurrentTag] += u", " + u(content)
-                else:
-                    self.tags[self.CurrentTag] = u(content)
-
-    def endElement(self, tag):
-        if tag == "article" or tag == "inproceedings" or tag == "proceedings2" or tag == "book" or tag == "incollection" or tag == "phdthesis" or tag == "mastersthesis" or tag == "www" or tag == "person" or tag == "data":
-            write_index(self.tags)
-            self.tags = {}
-            self.initDict()
-        self.CurrentTag = ""
-
-    def initDict(self):
-        self.tags["author"] = ""
-        self.tags["editor"] = ""
-        self.tags["title"] = ""
-        self.tags["booktitle"] = ""
-        self.tags["pages"] = ""
-        self.tags["year"] = ""
-        self.tags["address"] = ""
-        self.tags["journal"] = ""
-        self.tags["volume"] = ""
-        self.tags["number"] = ""
-        self.tags["month"] = ""
-        self.tags["url"] = ""
-        self.tags["ee"] = ""
-        self.tags["cdrom"] = ""
-        self.tags["cite"] = ""
-        self.tags["publisher"] = ""
-        self.tags["note"] = ""
-        self.tags["crossref"] = ""
-        self.tags["isbn"] = ""
-        self.tags["series"] = ""
-        self.tags["school"] = ""
-        self.tags["chapter"] = ""
-        self.tags["publnr"] = ""
-
-
-def write_index(doc):
-    #scrivo il documento nell'indice
-    writer.add_document(author=doc["author"], editor=doc["editor"], title=doc["title"], booktitle=doc["booktitle"], pages=doc["pages"], year=doc["year"],
-                        address=doc["address"], journal=doc["journal"], volume=doc["volume"], number=doc["number"], month=doc["month"], url=doc["url"],
-                        ee=doc["ee"], cdrom=doc["cdrom"], cite=doc["cite"], publisher=doc["publisher"], note=doc["note"], crossref=doc["crossref"],
-                        isbn=doc["isbn"], series=doc["series"], school=doc["school"], chapter=doc["chapter"], publnr=doc["publnr"])
-
-
-def stampaRisultato(results):
+def stampaRisultato(results, fields):
+    localFields = ["title","link", "author", "year"]
     i = 1
     if len(results) == 0:
         print("Nessun risultato!!")
     else:
         for res in results:
             print("-----------------------------------------")
-            print(i, ") title: ", res["title"])
-            print("author: ", res["author"])
-            print("year: ", res["year"])
+            print(i, ") title: ", res.dic["title"])
+            print("type: ", res.dic["type"])
+            print("link: ", res.dic["ee"])
+            print("author: ", res.dic["author"])
+            print("year: ", res.dic["year"])
             i += 1
+            for field in fields:
+                if field in localFields:
+                    continue
+                else:
+                    print(field+": ", res.dic[field])
 
 
-if not os.path.exists("indexdir"):
-    os.mkdir("indexdir")
-schema = Schema(author=TEXT(stored=True), editor=TEXT(stored=True), title=TEXT(stored=True, analyzer=StemmingAnalyzer()), booktitle=TEXT(stored=True, analyzer=StemmingAnalyzer()), pages=TEXT(stored=True), year=TEXT(stored=True), address=TEXT(stored=True),
-                    journal=TEXT(stored=True, analyzer=StemmingAnalyzer()), volume=TEXT(stored=True), number=TEXT(stored=True), month=TEXT(stored=True), url=TEXT(stored=True), ee=TEXT(stored=True), cdrom=TEXT(stored=True), cite=TEXT(stored=True),
-                    publisher=TEXT(stored=True), note=TEXT(stored=True, analyzer=StemmingAnalyzer()), crossref=TEXT(stored=True), isbn=TEXT(stored=True), series=TEXT(stored=True), school=TEXT(stored=True), chapter=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+class Hit:
+    def __init__(self, hits):
+        self.dic = {}
+        self.transform(hits)
+
+    def transform(self, hits):
+        for key, val in hits.items():
+            self.dic[key] = val
+
+
+def element_filter(results, type):
+    filtered_list = []
+    if type != "":
+        for res in results:
+            if res.dic["type"] == type:
+                filtered_list.append(res)
+        return filtered_list
+    return results
+
+if __name__ == "__main__":
+    if not os.path.exists("indexdir"):
+        os.mkdir("indexdir")
+
+    #ID considera il valore per la sua interezza, ideale per url.
+    #i field che supportano le phrasal queries sono quelli con phrase=true
+    schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True), editor=TEXT(stored=True),
+                    title=TEXT(stored=True, phrase=True),
+                    booktitle=TEXT(stored=True, phrase=True), pages=TEXT(stored=True),
+                    year=TEXT(stored=True), address=TEXT,
+                    journal=TEXT(stored=True, phrase=True), volume=TEXT,
+                    number=TEXT(stored=True), month=TEXT, url=ID(stored=True), ee=ID(stored=True),
+                    cdrom=TEXT(stored=True), cite=TEXT,
+                    publisher=TEXT(stored=True), note=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+                    crossref=TEXT(stored=True), isbn=TEXT, series=TEXT, school=TEXT,
+                    chapter=TEXT(stored=True, analyzer=StemmingAnalyzer()),
                     publnr=TEXT(stored=True))
 
-ix = create_in("indexdir", schema)
-writer = ix.writer()
+    # mi serve nel caso in cui non ho fields specificati nella query
+    schemaFields = ["type","author","editor","title", "booktitle", "pages","year", "address","journal", "volume","number", "month","url",
+                    "ee","cdrom","cite","publisher","note","crossref","isbn","series","school","chapter","publnr"]
+
+    ix = create_in("indexdir", schema)
+    writer = ix.writer()
 
 
-parser = xml.sax.make_parser()
-handler = DataHandler()
-parser.setContentHandler(handler)
-parser.parse('../test.xml')
+    parser = xml.sax.make_parser()
+    handler = DH.DataHandler(writer)
+    parser.setContentHandler(handler)
+    parser.parse('../test.xml')
 
-writer.commit(optimize=True)
-#il searcher va fatto dopo la commit!!
-searcher = ix.searcher()
-myquery = input("cosa vuoi cercare? ")
+    writer.commit(optimize=True)
+    #il searcher va fatto dopo la commit!!
+    searcher = ix.searcher()
+    querystring = ""
+    type = ""
+    while querystring != "0":
+        querystring = input("cosa vuoi cercare? (0 per terminare) \n")
+        if querystring != "0":
+            queryman = QM.QueryManager()
+            fields, myquery = queryman.transform(querystring)
+            resTmp = []
+            results = []
+            resSetLocal = set()
+            resSetTotal = set()
+            newFields = fields
+            #var per capire se sto per effettuare una ricerca per tipo (article, proceedings....)
+            typesearch = False
+            #se i fields non sono specificati o specifico solo il tipo di doc devo cercare tra tutti i field che ho a disposizione
+            for field in fields:
+                if field not in schemaFields and "." not in field:
+                    typesearch = True
 
+            if len(fields) == 0 or typesearch:
+                if typesearch:
+                    #è possibile specificare un solo tipo di doc
+                    type = fields[0]
+                    newFields = []
+                    fields = []
+                for field in schemaFields:
+                    #per ogni parola nella lista myquery
+                    for q in myquery:
+                        qparser = QueryParser(field,schema=ix.schema)
+                        #qparser.remove_plugin_class(QueryParser.WildcardPlugin)
+                        query = qparser.parse(q)
+                        resTmp = searcher.search(query)
+                        for res in resTmp:
+                            el = Hit(res)
+                            resSetTotal.add(el)
+            else:
+                newFields = []
+                # for field in fields:
+                #     if "." in field:
+                #         tmpQuery = myquery + " " + field.split(".")[0]
+                #         fields.append(field.split(".")[0])
+                #         fields.remove(field)
+                #
+                #         if "type" not in fields:
+                #             fields.append("type")
+                # mparser = MultifieldParser(fields, schema=ix.schema)
+                for field in fields:
+                    if "." in field:
+                        type = field.split(".")[0]
+                        if len(field.split(".")) > 0:
+                            qparser = QueryParser(field.split(".")[1],schema=ix.schema)
+                            newFields.append(field.split(".")[1])
 
-parser = QueryParser("author", schema=ix.schema)
-query = parser.parse(myquery)
-results = searcher.search(query, limit=30)
+                    else:
+                        #caso in cui non specifico il tipo di documento
+                        if field not in newFields:
+                            newFields.append(field)
+                        qparser = QueryParser(field, schema=ix.schema)
+                    for q in myquery:
+                        query = qparser.parse(q)
+                        resTmp = searcher.search(query)
+                        if len(resSetTotal) == 0:
+                            for res in resTmp:
+                                el = Hit(res)
+                                resSetTotal.add(el)
+                        else:
+                            resSetLocal = set()
+                            for res in resTmp:
+                                el = Hit(res)
+                                resSetLocal.add(el)
+                        #intersezione degli insiemi
+                        if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                            set1 = set(x.dic["key"] for x in resSetTotal)
+                            set2 = set(x.dic["key"] for x in resSetLocal)
+                            intersection_ids = set1 & set2
+                            resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+            # whoosh presenta un bug nel parser, per le query ad un solo carattere dichiarate come TEXT nello schema
+            # il parser restituisce una query nulla invece della query giusta.. es: number: 1 non lo parsa correttamente, invece number: 11 si
+            results = element_filter(resSetTotal, type)
 
-stampaRisultato(results)
-searcher.close()
+            stampaRisultato(results, newFields)
+    searcher.close()
 
 
 

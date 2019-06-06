@@ -1,0 +1,92 @@
+<dblp>
+  <inproceedings key="conf/ifip11-8/FurnellKPEHE18" mdate="2018-12-23">
+    <author>Steven Furnell</author>
+    <author>Michael K</author>
+    <author>Fred Piper</author>
+    <author>Chris E</author>
+    <author>Catherine H</author>
+    <author>Chris Ensor</author>
+    <title>A National Certification Programme for Academic Degrees in Cyber Security.</title>
+    <pages>133-145</pages>
+    <year>2018</year>
+    <booktitle>World Conference on Information Security Education</booktitle>
+    <ee type="oa">https://doi.org/10.1007/978-3-319-99734-6_11</ee>
+    <crossref>conf/ifip11-8/2018</crossref>
+    <url>db/conf/ifip11-8/ifip11-8-2018.html#FurnellKPEHE18</url>
+  </inproceedings>
+  <article key="journals/jifs/ELL19" mdate="2019-02-22">
+    <author>Cheng-Guo E</author>
+    <author>Quan-Lin Li</author>
+    <author>Shiyong Li</author>
+    <title>Cooperative game in parallel service systems with nonexponential service times.</title>
+    <pages>127-137</pages>
+    <year>2019</year>
+    <volume>36</volume>
+    <journal>Journal of Intelligent and Fuzzy Systems</journal>
+    <number>1</number>
+    <ee>https://doi.org/10.3233/JIFS-18101</ee>
+    <url>db/journals/jifs/jifs36.html#ELL19</url>
+  </article>
+  <article key="journals/amcs/ELL17" mdate="2018-08-15">
+    <author>Cheng-Guo E</author>
+    <author>Quan-Lin Li</author>
+    <title>The interval Shapley value of an M/M/1 service system.</title>
+    <pages>549-562</pages>
+    <year>2017</year>
+    <volume>27</volume>
+    <journal>Applied Mathematics and Computer Science</journal>
+    <number>33</number>
+    <ee type="oa">https://doi.org/10.1515/amcs-2017-0039</ee>
+    <url>db/journals/amcs/amcs27.html#ELL17</url>
+  </article>
+  <inproceedings key="conf/ozchi/AggarwalGPVED15" mdate="2018-11-06">
+    <author>Deepti Aggarwal</author>
+    <author>Robyn Garnett</author>
+    <author>Bernd Ploderer</author>
+    <author orcid="0000-0003-3727-9204">Frank Vetere</author>
+    <author orcid="0000-0001-5555-8325">Patricia Eadie</author>
+    <author>Bronwyn Joy Davidson</author>
+    <title>Understanding Video based Parent Training Intervention for Children with Autism.</title>
+    <pages>10-19</pages>
+    <year>2015</year>
+    <booktitle>OZCHI</booktitle>
+    <ee>https://doi.org/10.1145/2838739.2838770</ee>
+    <crossref>conf/ozchi/2015</crossref>
+    <url>db/conf/ozchi/ozchi2015.html#AggarwalGPVED15</url>
+  </inproceedings>
+  <article>
+    <author>Cheng-Guo E</author>
+    <title>Understanding based</title>
+    <pages>127-137</pages>
+    <year>2010</year>
+    <volume>36</volume>
+    <journal>Journal of Intelligent and Fuzzy Systems</journal>
+    <number>1</number>
+    <ee>https://doi.org/10.3233/JIFS-18101</ee>
+    <url>db/journals/jifs/jifs36.html#ELL19</url>
+  </article>
+  <article key="journals/jifs/ELL19" mdate="2019-02-22">
+    <author>Cheng-Guo E</author>
+    <title>Understanding based</title>
+    <pages>127-137</pages>
+    <year>2019</year>
+    <volume>36</volume>
+    <journal>Journal of Intelligent and Fuzzy Systems</journal>
+    <number>1</number>
+    <ee>https://doi.org/10.3233/JIFS-18101</ee>
+    <url>db/journals/jifs/jifs36.html#ELL19</url>
+  </article>
+  <inproceedings >
+    <author>Cheng-Guo E</author>
+    <author orcid="0000-0003-3727-9204">Frank Vetere</author>
+    <author orcid="0000-0001-5555-8325">Patricia Eadie</author>
+    <author>Bronwyn Joy Davidson</author>
+    <title>prova3</title>
+    <pages>10-19</pages>
+    <year>2015</year>
+    <booktitle>OZCHI</booktitle>
+    <ee>https://doi.org/10.1145/2838739.2838770</ee>
+    <crossref>conf/ozchi/2015</crossref>
+    <url>db/conf/ozchi/ozchi2015.html#AggarwalGPVED15</url>
+  </inproceedings>
+</dblp>
