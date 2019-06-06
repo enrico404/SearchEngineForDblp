@@ -3,10 +3,10 @@
 my personal search engine for the dblp database.
 in development...
 
-#testing
+# testing
 move the file "test.xml" to the parent directory of the project folder
 
-#how to use
+# how to use
 
 f-t-s : ([field:] search-pattern) \
 search-pattern : keyword | “phase” \
