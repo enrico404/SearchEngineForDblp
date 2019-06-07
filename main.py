@@ -51,10 +51,25 @@ class Hit:
 def element_filter(results, type):
     filtered_list = []
     if type != "":
-        for res in results:
-            if res.dic["type"] == type:
-                filtered_list.append(res)
-        return filtered_list
+        if type == "venue" or type == "publication":
+            if type == "venue":
+                for res in results:
+                    # una venue può essere una procedings, un book o un journal, il journal è riconosciuto
+                    # se res.dic["journal"] è != "" e quindi esiste il giornale
+                    if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
+                        filtered_list.append(res)
+                return filtered_list
+            elif type == "publication":
+                for res in results:
+                    # una pubblicazione può essere di tipo: article, incollection, inproceedings, phdthesis, mastersthesis
+                    if res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis":
+                        filtered_list.append(res)
+                return filtered_list
+        else:
+            for res in results:
+                if res.dic["type"] == type:
+                    filtered_list.append(res)
+            return filtered_list
     return results
 
 if __name__ == "__main__":
@@ -62,7 +77,7 @@ if __name__ == "__main__":
 
     #ID considera il valore per la sua interezza, ideale per url.
     #i field che supportano le phrasal queries sono quelli con phrase=true
-    schema = Schema(key=TEXT(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
+    schema = Schema(key=NUMERIC, type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
                     title=TEXT(stored=True, phrase=True), year=TEXT(stored=True),
                     journal=TEXT(stored=True, phrase=True), ee=ID(stored=True), publisher=TEXT(stored=True))
 
@@ -96,21 +111,20 @@ if __name__ == "__main__":
     else:
         ix = whoosh.index.open_dir("indexdir", schema=schema)
 
+    # il searcher va fatto dopo la commit!!
+    print()
+    print("scegli il modello di ranking: ")
+    print("1) BM25F")
+    print("2) PL2")
+    choice = int(input())
+    if choice == 1:
+        searcher = ix.searcher(weighting=whoosh.scoring.BM25F)
+    else:
+        searcher = ix.searcher(weighting=whoosh.scoring.PL2)
 
     querystring = ""
     type = ""
     while querystring != "0":
-        # il searcher va fatto dopo la commit!!
-        print()
-        print("scegli il modello di ranking: ")
-        print("1) BM5F")
-        print("2) PL2")
-        choice = int(input())
-        if choice == 1:
-            searcher = ix.searcher(weighting=whoosh.scoring.BM25F)
-        else:
-            searcher = ix.searcher(weighting=whoosh.scoring.PL2)
-
         querystring = input("cosa vuoi cercare? (0 per terminare) \n")
         if querystring != "0":
             queryman = QM.QueryManager()

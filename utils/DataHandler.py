@@ -25,7 +25,8 @@ class DataHandler(xml.sax.handler.ContentHandler):
                     self.tags[self.CurrentTag] = content
 
     def endElement(self, tag):
-        if tag == "article" or tag == "inproceedings" or tag == "proceedings2" or tag == "book" or tag == "incollection" or tag == "phdthesis" or tag == "mastersthesis" or tag == "www" or tag == "person" or tag == "data":
+        if tag == "article" or tag == "inproceedings" or tag == "proceedings" or tag == "book" or tag == "incollection" or tag == "phdthesis" or tag == "mastersthesis" or tag == "www" or tag == "person" or tag == "data":
+            self.id += 1
             self.write_index(tag)
             self.tags = {}
             self.initDict()
@@ -46,5 +47,5 @@ class DataHandler(xml.sax.handler.ContentHandler):
         #                     address=doc["address"], journal=doc["journal"], volume=doc["volume"], number=doc["number"], month=doc["month"], url=doc["url"],
         #                     ee=doc["ee"], cdrom=doc["cdrom"], cite=doc["cite"], publisher=doc["publisher"], note=doc["note"], crossref=doc["crossref"],
         #                     isbn=doc["isbn"], series=doc["series"], school=doc["school"], chapter=doc["chapter"], publnr=doc["publnr"])
-        self.writer.add_document(key=self.tags["key"], type=startTag, author=self.tags["author"], title=self.tags["title"], year=self.tags["year"],
+        self.writer.add_document(key=self.id, type=startTag, author=self.tags["author"], title=self.tags["title"], year=self.tags["year"],
                                  journal=self.tags["journal"], ee=self.tags["ee"], publisher=self.tags["publisher"])
