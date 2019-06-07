@@ -1,12 +1,14 @@
 # dblpSearchEngine
 
-my personal search engine for the dblp database.
+my personal search engine for the dblp database. \
 in development...
 
 # testing
 move the file "test.xml" to the parent directory of the project folder
 
 # how to use
+
+language supported:
 
 f-t-s : ([field:] search-pattern) \
 search-pattern : keyword | “phase” \

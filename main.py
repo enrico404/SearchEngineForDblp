@@ -1,4 +1,6 @@
 import xml.sax
+import whoosh.scoring
+import whoosh.index
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID,DATETIME,NUMERIC
 from whoosh.query import *
@@ -15,13 +17,17 @@ def stampaRisultato(results, fields):
     if len(results) == 0:
         print("Nessun risultato!!")
     else:
+        #print di stampare il risultato devo ordinare per score
+        results.sort(key= lambda x: x.score, reverse=True)
         for res in results:
             print("-----------------------------------------")
             print(i, ") title: ", res.dic["title"])
             print("type: ", res.dic["type"])
             print("link: ", res.dic["ee"])
             print("author: ", res.dic["author"])
+
             print("year: ", res.dic["year"])
+            print("score: ", res.score)
             i += 1
             for field in fields:
                 if field in localFields:
@@ -34,10 +40,12 @@ class Hit:
     def __init__(self, hits):
         self.dic = {}
         self.transform(hits)
+        self.score = hits.score
 
     def transform(self, hits):
         for key, val in hits.items():
             self.dic[key] = val
+
 
 
 def element_filter(results, type):
@@ -50,42 +58,59 @@ def element_filter(results, type):
     return results
 
 if __name__ == "__main__":
-    if not os.path.exists("indexdir"):
-        os.mkdir("indexdir")
+
 
     #ID considera il valore per la sua interezza, ideale per url.
     #i field che supportano le phrasal queries sono quelli con phrase=true
-    schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True), editor=TEXT(stored=True),
-                    title=TEXT(stored=True, phrase=True),
-                    booktitle=TEXT(stored=True, phrase=True), pages=TEXT(stored=True),
-                    year=TEXT(stored=True), address=TEXT,
-                    journal=TEXT(stored=True, phrase=True), volume=TEXT,
-                    number=TEXT(stored=True), month=TEXT, url=ID(stored=True), ee=ID(stored=True),
-                    cdrom=TEXT(stored=True), cite=TEXT,
-                    publisher=TEXT(stored=True), note=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-                    crossref=TEXT(stored=True), isbn=TEXT, series=TEXT, school=TEXT,
-                    chapter=TEXT(stored=True, analyzer=StemmingAnalyzer()),
-                    publnr=TEXT(stored=True))
+    schema = Schema(key=TEXT(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
+                    title=TEXT(stored=True, phrase=True), year=TEXT(stored=True),
+                    journal=TEXT(stored=True, phrase=True), ee=ID(stored=True), publisher=TEXT(stored=True))
+
+    # schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
+    #                 editor=TEXT(stored=True),
+    #                 title=TEXT(stored=True, phrase=True),
+    #                 booktitle=TEXT(stored=True, phrase=True), pages=TEXT(stored=True),
+    #                 year=TEXT(stored=True), address=TEXT,
+    #                 journal=TEXT(stored=True, phrase=True), volume=TEXT,
+    #                 number=TEXT(stored=True), month=TEXT, url=ID(stored=True), ee=ID(stored=True),
+    #                 cdrom=TEXT(stored=True), cite=TEXT,
+    #                 publisher=TEXT(stored=True), note=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+    #                 crossref=TEXT(stored=True), isbn=TEXT, series=TEXT, school=TEXT,
+    #                 chapter=TEXT(stored=True, analyzer=StemmingAnalyzer()),
+    #                 publnr=TEXT(stored=True))
 
     # mi serve nel caso in cui non ho fields specificati nella query
-    schemaFields = ["type","author","editor","title", "booktitle", "pages","year", "address","journal", "volume","number", "month","url",
-                    "ee","cdrom","cite","publisher","note","crossref","isbn","series","school","chapter","publnr"]
+    schemaFields = ["type","author","title","year", "journal","ee","publisher"]
+    #se l'indice è già costruito non lo devo rifare
+    if not os.path.exists("indexdir"):
+        os.mkdir("indexdir")
+        ix = create_in("indexdir", schema)
+        writer = ix.writer()
 
-    ix = create_in("indexdir", schema)
-    writer = ix.writer()
+        parser = xml.sax.make_parser()
+        handler = DH.DataHandler(writer)
+        parser.setContentHandler(handler)
+        parser.parse('../test.xml')
+
+        writer.commit(optimize=True)
+    else:
+        ix = whoosh.index.open_dir("indexdir", schema=schema)
 
 
-    parser = xml.sax.make_parser()
-    handler = DH.DataHandler(writer)
-    parser.setContentHandler(handler)
-    parser.parse('../test.xml')
-
-    writer.commit(optimize=True)
-    #il searcher va fatto dopo la commit!!
-    searcher = ix.searcher()
     querystring = ""
     type = ""
     while querystring != "0":
+        # il searcher va fatto dopo la commit!!
+        print()
+        print("scegli il modello di ranking: ")
+        print("1) BM5F")
+        print("2) PL2")
+        choice = int(input())
+        if choice == 1:
+            searcher = ix.searcher(weighting=whoosh.scoring.BM25F)
+        else:
+            searcher = ix.searcher(weighting=whoosh.scoring.PL2)
+
         querystring = input("cosa vuoi cercare? (0 per terminare) \n")
         if querystring != "0":
             queryman = QM.QueryManager()
@@ -161,7 +186,10 @@ if __name__ == "__main__":
                             resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
             # whoosh presenta un bug nel parser, per le query ad un solo carattere dichiarate come TEXT nello schema
             # il parser restituisce una query nulla invece della query giusta.. es: number: 1 non lo parsa correttamente, invece number: 11 si
-            results = element_filter(resSetTotal, type)
+
+            #traduco il set in lista per gestirlo meglio:
+            resSet = [i for i in resSetTotal]
+            results = element_filter(resSet, type)
 
             stampaRisultato(results, newFields)
     searcher.close()
