@@ -211,7 +211,7 @@ if __name__ == "__main__":
                 while i < len(fields):
                     # se è di tipo: publication.title
                     if "." in fields[i]:
-                        if fields[i].split(".")[0] not in type:
+                        if fields[i].split(".")[0] not in type and not fields[i].split(".")[0] in schemaFields:
                             type.append(fields[i].split(".")[0])
                         qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
                         query = qparser.parse(myquery[i])
@@ -253,7 +253,7 @@ if __name__ == "__main__":
                             i += 1
                     else:
                         try:
-                            if fields[i] != "":
+                            if fields[i] != "" and not fields[i] in schemaFields:
                                 type.append(fields[i])
                         except:
                             pass
@@ -290,9 +290,17 @@ if __name__ == "__main__":
                 # caso in cui mi manca un campo o più nei fields
                 else:
                     for q in myquery:
+
                         if q[0] != "\"":
                             queryList = q.split(" ")
                             i = 0
+                            try:
+                                if fields[i] != "":
+                                    if fields[i].split(".")[0] not in type and not fields[i].split(".")[0] in schemaFields:
+                                        type.append(fields[i].split(".")[0])
+                            except:
+                                pass
+
                             while i < len(queryList):
                                 #ricerca in tutti i field nel caso in cui non specifico i field
                                 for field in schemaFields:
