@@ -3,37 +3,31 @@ import whoosh.scoring
 import whoosh.index
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID,DATETIME,NUMERIC
-from whoosh.query import *
 from whoosh.qparser import QueryParser
-from whoosh.analysis import *
 from utils import DataHandler as DH
 from utils import QueryManager as QM
 import os
 
 
-def stampaRisultato(results, fields):
-    localFields = ["title","link", "author", "year"]
+def stampaRisultato(results):
     i = 1
     if len(results) == 0:
         print("Nessun risultato!!")
     else:
         #print di stampare il risultato devo ordinare per score
-        results.sort(key= lambda x: x.score, reverse=True)
-        for res in results:
-            print("-----------------------------------------")
-            print(i, ") title: ", res.dic["title"])
-            print("type: ", res.dic["type"])
-            print("link: ", res.dic["ee"])
-            print("author: ", res.dic["author"])
-
-            print("year: ", res.dic["year"])
-            print("score: ", res.score)
-            i += 1
-            for field in fields:
-                if field in localFields:
-                    continue
-                else:
-                    print(field+": ", res.dic[field])
+        results.sort(key=lambda x: x.score, reverse=True)
+        if results != None:
+            for res in results:
+                print("-----------------------------------------")
+                print(i, ") title: ", res.dic["title"])
+                print("type: ", res.dic["type"])
+                print("link: ", res.dic["ee"])
+                print("author: ", res.dic["author"])
+                print("year: ", res.dic["year"])
+                print("score: ", res.score)
+                i += 1
+        else:
+            print("Nessun risultato!!")
 
 
 class Hit:
@@ -47,39 +41,117 @@ class Hit:
             self.dic[key] = val
 
 
-
-def element_filter(results, type):
+def element_filter_old(results, type):
     filtered_list = []
-    if type != "":
-        if type == "venue" or type == "publication":
-            if type == "venue":
+    if len(type) > 0:
+        if "venue" in type or "publication" in type:
+            if "venue" in type:
                 for res in results:
                     # una venue può essere una procedings, un book o un journal, il journal è riconosciuto
                     # se res.dic["journal"] è != "" e quindi esiste il giornale
                     if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
-                        filtered_list.append(res)
-                return filtered_list
-            elif type == "publication":
+                        if res not in filtered_list:
+                            filtered_list.append(res)
+            if "publication" in type:
                 for res in results:
                     # una pubblicazione può essere di tipo: article, incollection, inproceedings, phdthesis, mastersthesis
                     if res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis":
-                        filtered_list.append(res)
-                return filtered_list
+                        if res not in filtered_list:
+                            filtered_list.append(res)
+            return filtered_list
         else:
             for res in results:
-                if res.dic["type"] == type:
-                    filtered_list.append(res)
-            return filtered_list
+                for t in type:
+                    if res.dic["type"] == t:
+                        filtered_list.append(res)
+                return filtered_list
     return results
+
+
+# funzione che serve per combinare i documenti e non avere documenti doppi con score differenti
+# la lista in input è già ordinata
+def combine(lista):
+    combinedList = []
+    # lista di supporto per semplificare la combinazione dei doc
+    combinedListKey = []
+    for el in lista:
+        if el.dic["key"] not in combinedListKey:
+            combinedList.append(el)
+            combinedListKey.append(el.dic["key"])
+    return combinedList
+
+#funzione che controlla se la lista type è di tipo composto
+def iscomposed(type):
+    typeFields = ["article", "inproceedings","proceedings","book", "incollection", "phdthesis","mastersthesis", "www","person", "data"]
+    for t in type:
+        if ("publication" in type or "venue" in type) and t in typeFields:
+            return True
+    return False
+
+def element_filter(results, type):
+    filtered_list = []
+    if len(type) > 0:
+        for res in results:
+            if res.dic["type"] in type or "publication" in type or "venue" in type:
+                if "publication" in type and "venue" in type:
+                    #el sia pub che venue
+                    # check venue
+                    if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
+                        #check publication
+                        if res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis":
+                            # se è un tipo composto es: type = ["publication, venue, article]
+                            if iscomposed(type):
+                                if res.dic["type"] in type:
+                                    filtered_list.append(res)
+                            #altrimenti posso aggiungerlo tranquillamente
+                            else:
+                                filtered_list.append(res)
+
+                elif "publication" in type:
+                   # check pub
+                    if res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis":
+                        #check not venue
+                        #if not(res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != ""):
+                            # se è un tipo composto es: type = ["publication, venue, article]
+                        if iscomposed(type):
+                            if res.dic["type"] in type:
+                                filtered_list.append(res)
+                        # altrimenti posso aggiungerlo tranquillamente
+                        else:
+                            filtered_list.append(res)
+                elif "venue" in type:
+                    #prendo solo i venue
+                    #check venue
+                    if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
+                        #check not publication
+                        #if not(res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis"):
+                            # se è un tipo composto es: type = ["publication, venue, article]
+                        if iscomposed(type):
+                            if res.dic["type"] in type:
+                                filtered_list.append(res)
+                        # altrimenti posso aggiungerlo tranquillamente
+                        else:
+                             filtered_list.append(res)
+                # caso in cui dentro alla lista type non ci sia publication e/o venue
+                else:
+                    # se è un tipo consentito lo aggiungo alla lista
+                    for t in type:
+                        if res.dic["type"] == t:
+                            filtered_list.append(res)
+        return filtered_list
+    else:
+        return results
+
 
 if __name__ == "__main__":
 
-
-    #ID considera il valore per la sua interezza, ideale per url.
-    #i field che supportano le phrasal queries sono quelli con phrase=true
-    schema = Schema(key=NUMERIC, type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
+    # ID considera il valore per la sua interezza, ideale per url.
+    # i field che supportano le phrasal queries sono quelli con phrase=true
+    schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
                     title=TEXT(stored=True, phrase=True), year=TEXT(stored=True),
                     journal=TEXT(stored=True, phrase=True), ee=ID(stored=True), publisher=TEXT(stored=True))
+    # limitatore dei doc risultanti
+    resultLimiter = 10
 
     # schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
     #                 editor=TEXT(stored=True),
@@ -123,66 +195,27 @@ if __name__ == "__main__":
         searcher = ix.searcher(weighting=whoosh.scoring.PL2)
 
     querystring = ""
-    type = ""
     while querystring != "0":
         querystring = input("cosa vuoi cercare? (0 per terminare) \n")
         if querystring != "0":
+            type = []
             queryman = QM.QueryManager()
             fields, myquery = queryman.transform(querystring)
             resTmp = []
             results = []
             resSetLocal = set()
             resSetTotal = set()
-            newFields = fields
-            #var per capire se sto per effettuare una ricerca per tipo (article, proceedings....)
-            typesearch = False
-            #se i fields non sono specificati o specifico solo il tipo di doc devo cercare tra tutti i field che ho a disposizione
-            for field in fields:
-                if field not in schemaFields and "." not in field:
-                    typesearch = True
 
-            if len(fields) == 0 or typesearch:
-                if typesearch:
-                    #è possibile specificare un solo tipo di doc
-                    type = fields[0]
-                    newFields = []
-                    fields = []
-                for field in schemaFields:
-                    #per ogni parola nella lista myquery
-                    for q in myquery:
-                        qparser = QueryParser(field,schema=ix.schema)
-                        #qparser.remove_plugin_class(QueryParser.WildcardPlugin)
-                        query = qparser.parse(q)
-                        resTmp = searcher.search(query)
-                        for res in resTmp:
-                            el = Hit(res)
-                            resSetTotal.add(el)
-            else:
-                newFields = []
-                # for field in fields:
-                #     if "." in field:
-                #         tmpQuery = myquery + " " + field.split(".")[0]
-                #         fields.append(field.split(".")[0])
-                #         fields.remove(field)
-                #
-                #         if "type" not in fields:
-                #             fields.append("type")
-                # mparser = MultifieldParser(fields, schema=ix.schema)
-                for field in fields:
-                    if "." in field:
-                        type = field.split(".")[0]
-                        if len(field.split(".")) > 0:
-                            qparser = QueryParser(field.split(".")[1],schema=ix.schema)
-                            newFields.append(field.split(".")[1])
-
-                    else:
-                        #caso in cui non specifico il tipo di documento
-                        if field not in newFields:
-                            newFields.append(field)
-                        qparser = QueryParser(field, schema=ix.schema)
-                    for q in myquery:
-                        query = qparser.parse(q)
-                        resTmp = searcher.search(query)
+            if len(fields) > 0 and len(fields) == len(myquery):
+                i = 0
+                while i < len(fields):
+                    # se è di tipo: publication.title
+                    if "." in fields[i]:
+                        if fields[i].split(".")[0] not in type:
+                            type.append(fields[i].split(".")[0])
+                        qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
+                        query = qparser.parse(myquery[i])
+                        resTmp = searcher.search(query, limit=resultLimiter)
                         if len(resSetTotal) == 0:
                             for res in resTmp:
                                 el = Hit(res)
@@ -192,20 +225,123 @@ if __name__ == "__main__":
                             for res in resTmp:
                                 el = Hit(res)
                                 resSetLocal.add(el)
-                        #intersezione degli insiemi
                         if len(resSetTotal) > 0 and len(resSetLocal) > 0:
                             set1 = set(x.dic["key"] for x in resSetTotal)
                             set2 = set(x.dic["key"] for x in resSetLocal)
                             intersection_ids = set1 & set2
                             resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+                        i += 1
+                    # se è un field delllo schema (titolo, year..)
+                    elif fields[i] in schemaFields:
+                            qparser = QueryParser(fields[i], schema=ix.schema)
+                            query = qparser.parse(myquery[i])
+                            resTmp = searcher.search(query, limit=resultLimiter)
+                            if len(resSetTotal) == 0:
+                                for res in resTmp:
+                                    el = Hit(res)
+                                    resSetTotal.add(el)
+                            else:
+                                resSetLocal = set()
+                                for res in resTmp:
+                                    el = Hit(res)
+                                    resSetLocal.add(el)
+                            if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                                set1 = set(x.dic["key"] for x in resSetTotal)
+                                set2 = set(x.dic["key"] for x in resSetLocal)
+                                intersection_ids = set1 & set2
+                                resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+                            i += 1
+                    else:
+                        try:
+                            if fields[i] != "":
+                                type.append(fields[i])
+                        except:
+                            pass
+                        #effettuo una ricerca su tutti i campi
+                        for field in schemaFields:
+                            qparser = QueryParser(field, schema=ix.schema)
+                            query = qparser.parse(myquery[i])
+                            resTmp = searcher.search(query, limit=resultLimiter)
+                            if len(resSetTotal) == 0:
+                                for res in resTmp:
+                                    el = Hit(res)
+                                    resSetTotal.add(el)
+                            else:
+                                resSetLocal = set()
+                                for res in resTmp:
+                                    el = Hit(res)
+                                    resSetLocal.add(el)
+                            if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                                set1 = set(x.dic["key"] for x in resSetTotal)
+                                set2 = set(x.dic["key"] for x in resSetLocal)
+                                intersection_ids = set1 & set2
+                                resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+                        i += 1
+            else:
+                # keyword search
+                if len(fields) == 0:
+                    for field in schemaFields:
+                        qparser = QueryParser(field, schema=ix.schema)
+                        query = qparser.parse(myquery[0])
+                        resTmp = searcher.search(query)
+                        for res in resTmp:
+                            el = Hit(res)
+                            resSetTotal.add(el)
+                # caso in cui mi manca un campo o più nei fields
+                else:
+                    for q in myquery:
+                        if q[0] != "\"":
+                            queryList = q.split(" ")
+                            i = 0
+                            while i < len(queryList):
+                                #ricerca in tutti i field nel caso in cui non specifico i field
+                                for field in schemaFields:
+                                    qparser = QueryParser(field, schema=ix.schema)
+                                    query = qparser.parse(queryList[i])
+                                    resTmp = searcher.search(query)
+                                    if len(resSetTotal) == 0:
+                                        for res in resTmp:
+                                            el = Hit(res)
+                                            resSetTotal.add(el)
+                                    else:
+                                        resSetLocal = set()
+                                        for res in resTmp:
+                                            el = Hit(res)
+                                            resSetLocal.add(el)
+                                    if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                                        set1 = set(x.dic["key"] for x in resSetTotal)
+                                        set2 = set(x.dic["key"] for x in resSetLocal)
+                                        intersection_ids = set1 & set2
+                                        resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+                                i += 1
+                        else:
+                                for field in schemaFields:
+                                    qparser = QueryParser(field, schema=ix.schema)
+                                    query = qparser.parse(q)
+                                    resTmp = searcher.search(query)
+                                    if len(resSetTotal) == 0:
+                                        for res in resTmp:
+                                            el = Hit(res)
+                                            resSetTotal.add(el)
+                                    else:
+                                        resSetLocal = set()
+                                        for res in resTmp:
+                                            el = Hit(res)
+                                            resSetLocal.add(el)
+                                    if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                                        set1 = set(x.dic["key"] for x in resSetTotal)
+                                        set2 = set(x.dic["key"] for x in resSetLocal)
+                                        intersection_ids = set1 & set2
+                                        resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
             # whoosh presenta un bug nel parser, per le query ad un solo carattere dichiarate come TEXT nello schema
             # il parser restituisce una query nulla invece della query giusta.. es: number: 1 non lo parsa correttamente, invece number: 11 si
 
             #traduco il set in lista per gestirlo meglio:
             resSet = [i for i in resSetTotal]
             results = element_filter(resSet, type)
-
-            stampaRisultato(results, newFields)
+            finalResults = []
+            finalResults = combine(results)
+            stampaRisultato(finalResults)
     searcher.close()
 
 
