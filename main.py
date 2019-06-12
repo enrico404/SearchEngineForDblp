@@ -7,6 +7,7 @@ from whoosh.qparser import QueryParser
 from utils import DataHandler as DH
 from utils import QueryManager as QM
 import os
+import multiprocessing
 
 
 def stampaRisultato(results):
@@ -47,7 +48,7 @@ def element_filter_old(results, type):
         if "venue" in type or "publication" in type:
             if "venue" in type:
                 for res in results:
-                    # una venue può essere una procedings, un book o un journal, il journal è riconosciuto
+                    # una venue può essere una procedings (conferenza), un book o un journal (rivista), il journal è riconosciuto
                     # se res.dic["journal"] è != "" e quindi esiste il giornale
                     if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
                         if res not in filtered_list:
@@ -80,13 +81,15 @@ def combine(lista):
             combinedListKey.append(el.dic["key"])
     return combinedList
 
-#funzione che controlla se la lista type è di tipo composto
+
+# funzione che controlla se la lista type è di tipo composto
 def iscomposed(type):
     typeFields = ["article", "inproceedings","proceedings","book", "incollection", "phdthesis","mastersthesis", "www","person", "data"]
     for t in type:
         if ("publication" in type or "venue" in type) and t in typeFields:
             return True
     return False
+
 
 def element_filter(results, type):
     filtered_list = []
@@ -110,8 +113,8 @@ def element_filter(results, type):
                 elif "publication" in type:
                    # check pub
                     if res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis":
-                        #check not venue
-                        #if not(res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != ""):
+                        # check not venue
+                        # if not(res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != ""):
                             # se è un tipo composto es: type = ["publication, venue, article]
                         if iscomposed(type):
                             if res.dic["type"] in type:
@@ -120,11 +123,11 @@ def element_filter(results, type):
                         else:
                             filtered_list.append(res)
                 elif "venue" in type:
-                    #prendo solo i venue
-                    #check venue
+                    # prendo solo i venue
+                    # check venue
                     if res.dic["type"] == "proceedings" or res.dic["type"] == "book" or res.dic["journal"] != "":
-                        #check not publication
-                        #if not(res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis"):
+                        # check not publication
+                        # if not(res.dic["type"] == "article" or res.dic["type"] == "incollection" or res.dic["type"] == "inproceedings" or res.dic["type"] == "phdthesis" or res.dic["type"] == "mastersthesis"):
                             # se è un tipo composto es: type = ["publication, venue, article]
                         if iscomposed(type):
                             if res.dic["type"] in type:
@@ -172,12 +175,14 @@ if __name__ == "__main__":
     if not os.path.exists("indexdir"):
         os.mkdir("indexdir")
         ix = create_in("indexdir", schema)
-        writer = ix.writer()
+        # get the number of processor
+        nproc = multiprocessing.cpu_count()
+        writer = ix.writer(procs=nproc, limitmb=512)
 
         parser = xml.sax.make_parser()
         handler = DH.DataHandler(writer)
         parser.setContentHandler(handler)
-        parser.parse('../test.xml')
+        parser.parse('../dblp.xml')
 
         writer.commit(optimize=True)
     else:
@@ -257,7 +262,7 @@ if __name__ == "__main__":
                                 type.append(fields[i])
                         except:
                             pass
-                        #effettuo una ricerca su tutti i campi
+                        # effettuo una ricerca su tutti i campi
                         for field in schemaFields:
                             qparser = QueryParser(field, schema=ix.schema)
                             query = qparser.parse(myquery[i])
@@ -278,15 +283,27 @@ if __name__ == "__main__":
                                 resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
                         i += 1
             else:
-                # keyword search
                 if len(fields) == 0:
-                    for field in schemaFields:
-                        qparser = QueryParser(field, schema=ix.schema)
-                        query = qparser.parse(myquery[0])
-                        resTmp = searcher.search(query)
-                        for res in resTmp:
-                            el = Hit(res)
-                            resSetTotal.add(el)
+                    # phrasal search
+                    if myquery[0][0] == "\"":
+                        for field in schemaFields:
+                            qparser = QueryParser(field, schema=ix.schema)
+                            query = qparser.parse(myquery[0])
+                            resTmp = searcher.search(query)
+                            for res in resTmp:
+                                el = Hit(res)
+                                resSetTotal.add(el)
+                    else:
+                        # keyword search
+                        for q in myquery[0].split(" "):
+                            for field in schemaFields:
+                                qparser = QueryParser(field, schema=ix.schema)
+                                query = qparser.parse(q)
+                                resTmp = searcher.search(query)
+                                for res in resTmp:
+                                    el = Hit(res)
+                                    resSetTotal.add(el)
+
                 # caso in cui mi manca un campo o più nei fields
                 else:
                     for q in myquery:
