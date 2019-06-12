@@ -9,14 +9,13 @@ from utils import QueryManager as QM
 import os
 import multiprocessing
 
-
-def stampaRisultato(results):
-    i = 1
+def stampaRisultato(results, runtime):
+    i = len(results)
     if len(results) == 0:
         print("Nessun risultato!!")
     else:
         #print di stampare il risultato devo ordinare per score
-        results.sort(key=lambda x: x.score, reverse=True)
+        results.sort(key=lambda x: x.score)
         if results != None:
             for res in results:
                 print("-----------------------------------------")
@@ -26,7 +25,10 @@ def stampaRisultato(results):
                 print("author: ", res.dic["author"])
                 print("year: ", res.dic["year"])
                 print("score: ", res.score)
-                i += 1
+                i -= 1
+            print("-----------------------------------------------------------------------")
+            print("")
+            print("Runtime: ", runtime)
         else:
             print("Nessun risultato!!")
 
@@ -153,8 +155,8 @@ if __name__ == "__main__":
     schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
                     title=TEXT(stored=True, phrase=True), year=TEXT(stored=True),
                     journal=TEXT(stored=True, phrase=True), ee=ID(stored=True), publisher=TEXT(stored=True))
-    # limitatore dei doc risultanti
-    resultLimiter = 10
+    # limitatore dei doc risultanti, più è piccolo, più la query viene risolta velocemente
+    resultLimiter = 800000
 
     # schema = Schema(key=NUMERIC(stored=True), type=TEXT(stored=True), author=TEXT(stored=True, phrase=True),
     #                 editor=TEXT(stored=True),
@@ -220,7 +222,8 @@ if __name__ == "__main__":
                             type.append(fields[i].split(".")[0])
                         qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
                         query = qparser.parse(myquery[i])
-                        resTmp = searcher.search(query)
+                        resTmp = searcher.search(query, limit=resultLimiter)
+                        runtime = resTmp.runtime
                         if len(resSetTotal) == 0:
                             for res in resTmp:
                                 el = Hit(res)
@@ -240,7 +243,8 @@ if __name__ == "__main__":
                     elif fields[i] in schemaFields:
                             qparser = QueryParser(fields[i], schema=ix.schema)
                             query = qparser.parse(myquery[i])
-                            resTmp = searcher.search(query)
+                            resTmp = searcher.search(query, limit=resultLimiter)
+                            runtime = resTmp.runtime
                             if len(resSetTotal) == 0:
                                 for res in resTmp:
                                     el = Hit(res)
@@ -256,31 +260,52 @@ if __name__ == "__main__":
                                 intersection_ids = set1 & set2
                                 resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
                             i += 1
+                    #se non è un field dello schema es: publication, venue
                     else:
                         try:
                             if fields[i] != "" and not fields[i] in schemaFields:
                                 type.append(fields[i])
                         except:
                             pass
-                        # effettuo una ricerca su tutti i campi
-                        for field in schemaFields:
-                            qparser = QueryParser(field, schema=ix.schema)
-                            query = qparser.parse(myquery[i])
-                            resTmp = searcher.search(query)
-                            if len(resSetTotal) == 0:
+                        flag = False
+                        tmpFields = []
+                        for field in fields:
+                            if field.split(".")[0] not in tmpFields:
+                                tmpFields.append(field.split(".")[0])
+
+                        if "venue" in tmpFields and "publication" in tmpFields:
+                            # effettuo una ricerca su tutti i campi
+                            for field in schemaFields:
+                                qparser = QueryParser(field, schema=ix.schema)
+                                query = qparser.parse(myquery[i])
+                                resTmp = searcher.search(query, limit=resultLimiter)
+                                runtime = resTmp.runtime
+                                if fields[i] == "venue":
+                                    if field == "author" or field == "title":
+                                        continue
+                                if len(resSetTotal) == 0:
+                                    for res in resTmp:
+                                        el = Hit(res)
+                                        resSetTotal.add(el)
+                                else:
+                                    resSetLocal = set()
+                                    for res in resTmp:
+                                        el = Hit(res)
+                                        resSetLocal.add(el)
+                                if len(resSetTotal) > 0 and len(resSetLocal) > 0:
+                                    set1 = set(x.dic["key"] for x in resSetTotal)
+                                    set2 = set(x.dic["key"] for x in resSetLocal)
+                                    intersection_ids = set1 & set2
+                                    resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
+                        else:
+                            for field in schemaFields:
+                                qparser = QueryParser(field, schema=ix.schema)
+                                query = qparser.parse(myquery[i])
+                                resTmp = searcher.search(query, limit=resultLimiter)
+                                runtime = resTmp.runtime
                                 for res in resTmp:
                                     el = Hit(res)
                                     resSetTotal.add(el)
-                            else:
-                                resSetLocal = set()
-                                for res in resTmp:
-                                    el = Hit(res)
-                                    resSetLocal.add(el)
-                            if len(resSetTotal) > 0 and len(resSetLocal) > 0:
-                                set1 = set(x.dic["key"] for x in resSetTotal)
-                                set2 = set(x.dic["key"] for x in resSetLocal)
-                                intersection_ids = set1 & set2
-                                resSetTotal = set(i for i in resSetLocal if i.dic["key"] in intersection_ids)
                         i += 1
             else:
                 if len(fields) == 0:
@@ -289,7 +314,8 @@ if __name__ == "__main__":
                         for field in schemaFields:
                             qparser = QueryParser(field, schema=ix.schema)
                             query = qparser.parse(myquery[0])
-                            resTmp = searcher.search(query)
+                            resTmp = searcher.search(query, limit=resultLimiter)
+                            runtime = resTmp.runtime
                             for res in resTmp:
                                 el = Hit(res)
                                 resSetTotal.add(el)
@@ -299,7 +325,8 @@ if __name__ == "__main__":
                             for field in schemaFields:
                                 qparser = QueryParser(field, schema=ix.schema)
                                 query = qparser.parse(q)
-                                resTmp = searcher.search(query)
+                                resTmp = searcher.search(query, limit=resultLimiter)
+                                runtime = resTmp.runtime
                                 for res in resTmp:
                                     el = Hit(res)
                                     resSetTotal.add(el)
@@ -323,7 +350,8 @@ if __name__ == "__main__":
                                 for field in schemaFields:
                                     qparser = QueryParser(field, schema=ix.schema)
                                     query = qparser.parse(queryList[i])
-                                    resTmp = searcher.search(query)
+                                    resTmp = searcher.search(query, limit=resultLimiter)
+                                    runtime = resTmp.runtime
                                     if len(resSetTotal) == 0:
                                         for res in resTmp:
                                             el = Hit(res)
@@ -343,7 +371,8 @@ if __name__ == "__main__":
                                 for field in schemaFields:
                                     qparser = QueryParser(field, schema=ix.schema)
                                     query = qparser.parse(q)
-                                    resTmp = searcher.search(query)
+                                    resTmp = searcher.search(query, limit=resultLimiter)
+                                    runtime = resTmp.runtime
                                     if len(resSetTotal) == 0:
                                         for res in resTmp:
                                             el = Hit(res)
@@ -366,7 +395,7 @@ if __name__ == "__main__":
             results = element_filter(resSet, type)
             finalResults = []
             finalResults = combine(results)
-            stampaRisultato(finalResults)
+            stampaRisultato(finalResults, runtime)
     searcher.close()
 
 
