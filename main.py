@@ -220,7 +220,7 @@ if __name__ == "__main__":
                             type.append(fields[i].split(".")[0])
                         qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
                         query = qparser.parse(myquery[i])
-                        resTmp = searcher.search(query, limit=resultLimiter)
+                        resTmp = searcher.search(query)
                         if len(resSetTotal) == 0:
                             for res in resTmp:
                                 el = Hit(res)
@@ -240,7 +240,7 @@ if __name__ == "__main__":
                     elif fields[i] in schemaFields:
                             qparser = QueryParser(fields[i], schema=ix.schema)
                             query = qparser.parse(myquery[i])
-                            resTmp = searcher.search(query, limit=resultLimiter)
+                            resTmp = searcher.search(query)
                             if len(resSetTotal) == 0:
                                 for res in resTmp:
                                     el = Hit(res)
@@ -266,7 +266,7 @@ if __name__ == "__main__":
                         for field in schemaFields:
                             qparser = QueryParser(field, schema=ix.schema)
                             query = qparser.parse(myquery[i])
-                            resTmp = searcher.search(query, limit=resultLimiter)
+                            resTmp = searcher.search(query)
                             if len(resSetTotal) == 0:
                                 for res in resTmp:
                                     el = Hit(res)

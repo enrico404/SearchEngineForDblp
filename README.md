@@ -1,14 +1,12 @@
-# dblpSearchEngine
+# DblpSearchEngine
 
 my personal search engine for the dblp database. \
 in development...
 
-# testing
-move the file "test.xml" to the parent directory of the project folder
+# Testing
+the application is tested on windows 10, but linux should be also supported...
 
-# how to use
-
-language supported:
+# Language supported:
 
 f-t-s : ([field:] search-pattern) \
 search-pattern : keyword | “phrase” \
@@ -18,3 +16,35 @@ pub-ele: publication | article | incollection | inproceedings | phThesis | maste
 pub-field: author | title | year \
 venue-search: venue[.venue-field] \
 venue-field: title | publisher 
+
+# Requirements
+- python3 
+- python3-pip
+- whoosh
+
+# Installation step (windows)
+- download and install python3.7.3 from the official site (https://www.python.org/downloads/)
+- open a terminal (power-shell or cmd)
+- run the following command: pip.exe install whoosh
+
+# Installation step (linux)
+- open a terminal
+- run the following command: pip3 install whoosh
+
+# Run  (linux)
+- download the dblp xml database from the following site: https://dblp.uni-trier.de/xml/
+- extract "dblp.xml.gz" and move the file "dblp.xml" to the project parent directory 
+- open a terminal
+- go to the project directory
+- run: python3 main.py
+ 
+ # Run  (windows)
+- download the dblp xml database from the following site: https://dblp.uni-trier.de/xml/
+- extract "dblp.xml.gz" and move the file "dblp.xml" to the project parent directory 
+- open a terminal
+- go to the project directory
+- run: python.exe .\main.py
+
+
+
+
