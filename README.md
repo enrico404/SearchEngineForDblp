@@ -24,7 +24,7 @@ venue-field: title | publisher
 
 # Installation step (windows)
 - download and install python3.7.3 from the official site (https://www.python.org/downloads/)
-- open a terminal (power-shell or cmd)
+- open a terminal (power-shell)
 - run the following command: pip.exe install whoosh
 
 # Installation step (linux)
@@ -41,7 +41,7 @@ venue-field: title | publisher
  # Run  (windows)
 - download the dblp xml database from the following site: https://dblp.uni-trier.de/xml/
 - extract "dblp.xml.gz" and move the file "dblp.xml" to the project parent directory 
-- open a terminal
+- open a terminal (power-shell)
 - go to the project directory
 - run: python.exe .\main.py
 
