@@ -6,7 +6,7 @@ class DataHandler(xml.sax.handler.ContentHandler):
         #dati documento corrente
         self.tags = {}
         self.initDict()
-        #tag corrente
+        # tag corrente
         self.CurrentTag = ""
         self.writer = ixwriter
 
