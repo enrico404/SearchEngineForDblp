@@ -5,11 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="2fd9e403-3785-4da0-b5d5-fb514730b68f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/DocDblpSearchEngine.odp" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/DataHandler.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/DataHandler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DocDblpSearchEngine.odp" beforeDir="false" afterPath="$PROJECT_DIR$/DocDblpSearchEngine.odp" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,8 +21,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="290">
-              <caret line="156" column="4" selection-start-line="156" selection-start-column="4" selection-end-line="158" selection-end-column="108" />
+            <state relative-caret-position="285">
+              <caret line="200" column="4" selection-start-line="200" selection-start-column="4" selection-end-line="203" selection-end-column="60" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -38,7 +34,7 @@
         <entry file="file://$PROJECT_DIR$/README.md">
           <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
             <state split_layout="SPLIT">
-              <first_editor relative-caret-position="340">
+              <first_editor relative-caret-position="850">
                 <caret line="50" selection-start-line="50" selection-end-line="50" />
               </first_editor>
               <second_editor />
@@ -73,6 +69,7 @@
       <find>resTmp</find>
       <find>runtime</find>
       <find>sortedby</find>
+      <find>searcher</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -171,11 +168,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$USER_HOME$/OneDrive/Desktop/GAVI/sorgenti" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../GAVI/sorgenti" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$USER_HOME$/OneDrive/Desktop/GAVI/sorgenti/provaWhoosh.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../GAVI/sorgenti/provaWhoosh.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -214,9 +211,9 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49819493" visible="true" weight="0.24925596" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49819493" visible="true" weight="0.24920969" />
       <window_info id="Structure" order="1" sideWeight="0.50180507" side_tool="true" weight="0.24973656" />
       <window_info id="Favorites" order="2" sideWeight="0.50180507" side_tool="true" weight="0.24973656" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -228,7 +225,7 @@
       <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49947312" weight="0.32936078" />
       <window_info anchor="bottom" id="Version Control" order="7" sideWeight="0.49947312" weight="0.32936078" />
       <window_info anchor="bottom" id="Terminal" order="8" weight="0.32936078" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5458377" side_tool="true" visible="true" weight="0.28878647" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.5458377" side_tool="true" visible="true" weight="0.2881907" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.32936078" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -239,7 +236,7 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$USER_HOME$/OneDrive/Desktop/GAVI/sorgenti/provaWhoosh.py</url>
+          <url>file://$PROJECT_DIR$/../GAVI/sorgenti/provaWhoosh.py</url>
           <line>24</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
@@ -388,7 +385,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/OneDrive/Desktop/GAVI/sorgenti/ex2.py" />
+    <entry file="file://$PROJECT_DIR$/../GAVI/sorgenti/ex2.py" />
     <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/_pydev_imps/_pydev_execfile.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="289">
@@ -424,7 +421,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/OneDrive/Desktop/GAVI/sorgenti/provaWhoosh.py" />
+    <entry file="file://$PROJECT_DIR$/../GAVI/sorgenti/provaWhoosh.py" />
     <entry file="file://$PROJECT_DIR$/Lib/site-packages/whoosh/writing.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="287">
@@ -453,13 +450,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/utils/QueryManager.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="408">
-          <caret line="24" column="17" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Lib/site-packages/whoosh/searching.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="381">
@@ -467,23 +457,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="285">
+          <caret line="200" column="4" selection-start-line="200" selection-start-column="4" selection-end-line="203" selection-end-column="60" />
+          <folding>
+            <element signature="e#0#14#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/README.md">
       <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
         <state split_layout="SPLIT">
-          <first_editor relative-caret-position="340">
+          <first_editor relative-caret-position="850">
             <caret line="50" selection-start-line="50" selection-end-line="50" />
           </first_editor>
           <second_editor />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
+    <entry file="file://$PROJECT_DIR$/utils/QueryManager.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="290">
-          <caret line="156" column="4" selection-start-line="156" selection-start-column="4" selection-end-line="158" selection-end-column="108" />
-          <folding>
-            <element signature="e#0#14#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="408">
+          <caret line="24" column="17" selection-start-line="24" selection-start-column="17" selection-end-line="24" selection-end-column="17" />
         </state>
       </provider>
     </entry>
