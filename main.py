@@ -222,11 +222,11 @@ if __name__ == "__main__":
                     if "." in fields[i]:
                         if fields[i].split(".")[0] not in type and not fields[i].split(".")[0] in schemaFields:
                             type.append(fields[i].split(".")[0])
-                        if myquery[i][0] == "\"":
-                            qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
-                        else:
-                            qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema, group=whoosh.qparser.OrGroup)
-
+                        # if myquery[i][0] == "\"":
+                        #     qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
+                        # else:
+                        #     qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema, group=whoosh.qparser.OrGroup)
+                        qparser = QueryParser(fields[i].split(".")[1], schema=ix.schema)
                         query = qparser.parse(myquery[i])
                         resTmp = searcher.search(query, limit=resultLimiter)
                         runtime = resTmp.runtime
@@ -247,12 +247,13 @@ if __name__ == "__main__":
                         i += 1
                     # se è un field delllo schema (titolo, year..)
                     elif fields[i] in schemaFields:
-                            if myquery[i][0] == "\"":
-                                qparser = QueryParser(fields[i], schema=ix.schema)
-                            else:
-                                qparser = QueryParser(fields[i], schema=ix.schema,
-                                                      group=whoosh.qparser.OrGroup)
+                            # if myquery[i][0] == "\"":
+                            #     qparser = QueryParser(fields[i], schema=ix.schema)
+                            # else:
+                            #     qparser = QueryParser(fields[i], schema=ix.schema,
+                            #                           group=whoosh.qparser.OrGroup)
                             # qparser = QueryParser(fields[i], schema=ix.schema)
+                            qparser = QueryParser(fields[i], schema=ix.schema)
                             query = qparser.parse(myquery[i])
                             resTmp = searcher.search(query, limit=resultLimiter)
                             runtime = resTmp.runtime
@@ -286,12 +287,13 @@ if __name__ == "__main__":
                         if "venue" in tmpFields and "publication" in tmpFields:
                             # effettuo una ricerca su tutti i campi
                             for field in schemaFields:
-                                if myquery[i][0] == "\"":
-                                    qparser = QueryParser(field, schema=ix.schema)
-                                else:
-                                    qparser = QueryParser(field, schema=ix.schema,
-                                                          group=whoosh.qparser.OrGroup)
-                                # qparser = QueryParser(field, schema=ix.schema)
+                                # if myquery[i][0] == "\"":
+                                #     qparser = QueryParser(field, schema=ix.schema)
+                                # else:
+                                #     qparser = QueryParser(field, schema=ix.schema,
+                                #                           group=whoosh.qparser.OrGroup)
+
+                                qparser = QueryParser(field, schema=ix.schema)
                                 query = qparser.parse(myquery[i])
                                 resTmp = searcher.search(query, limit=resultLimiter)
                                 runtime = resTmp.runtime
@@ -315,11 +317,12 @@ if __name__ == "__main__":
 
                         else:
                             for field in schemaFields:
-                                if myquery[i][0] == "\"":
-                                    qparser = QueryParser(field, schema=ix.schema)
-                                else:
-                                    qparser = QueryParser(field, schema=ix.schema,
-                                                          group=whoosh.qparser.OrGroup)
+                                # if myquery[i][0] == "\"":
+                                #     qparser = QueryParser(field, schema=ix.schema)
+                                # else:
+                                #     qparser = QueryParser(field, schema=ix.schema,
+                                #                           group=whoosh.qparser.OrGroup)
+                                qparser = QueryParser(field, schema=ix.schema)
                                 if fields[i] == "venue":
                                     if field == "author":
                                         continue
@@ -352,15 +355,16 @@ if __name__ == "__main__":
                 # se non ho campi specificati nella query originale
                 if len(fields) == 0:
                     for field in schemaFields:
-                        if myquery[0][0] == "\"":
-                            #phrasal search
-                            qparser = QueryParser(field, schema=ix.schema)
-                        else:
-                            # keyword search
-                            qparser = QueryParser(field, schema=ix.schema,
-                                                  group=whoosh.qparser.OrGroup)
+                        # if myquery[0][0] == "\"":
+                        #     #phrasal search
+                        #     qparser = QueryParser(field, schema=ix.schema)
+                        # else:
+                        #     # keyword search
+                        #     qparser = QueryParser(field, schema=ix.schema,
+                        #                           group=whoosh.qparser.OrGroup)
+                        qparser = QueryParser(field, schema=ix.schema)
                         query = qparser.parse(myquery[0])
-                        resTmp = searcher.search(query, limit=10)
+                        resTmp = searcher.search(query, limit=resultLimiter)
                         runtime = resTmp.runtime
                         for res in resTmp:
                             el = Hit(res)
@@ -383,12 +387,13 @@ if __name__ == "__main__":
 
                             #ricerca in tutti i field nel caso in cui non specifico i field
                             for field in schemaFields:
-                                qparser = QueryParser(field, schema=ix.schema,
-                                                      group=whoosh.qparser.OrGroup)
+                                # qparser = QueryParser(field, schema=ix.schema,
+                                #                       group=whoosh.qparser.OrGroup)
+                                qparser = QueryParser(field, schema=ix.schema)
                                 query = qparser.parse(q)
 
                                 #lo limito a 10000 risultati per avere certezza di trovare almeno qualcosa
-                                resTmp = searcher.search(query, limit=10000)
+                                resTmp = searcher.search(query, limit=resultLimiter)
                                 runtime = resTmp.runtime
                                 if len(resSetTotal) == 0:
                                     for res in resTmp:
@@ -410,7 +415,7 @@ if __name__ == "__main__":
                                 for field in schemaFields:
                                     qparser = QueryParser(field, schema=ix.schema)
                                     query = qparser.parse(q)
-                                    resTmp = searcher.search(query, limit=10000)
+                                    resTmp = searcher.search(query, limit=resultLimiter)
                                     runtime = resTmp.runtime
                                     if len(resSetTotal) == 0:
                                         for res in resTmp:
